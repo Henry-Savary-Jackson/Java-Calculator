@@ -1,6 +1,6 @@
-
 package util;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.function.Consumer;
@@ -16,8 +16,9 @@ public class CalcButton  extends JButton implements ActionListener{
 	onClick = consumer;
 	output = text;
 	addActionListener(this);
+	this.setOpaque(true);
+	this.setBackground(Color.LIGHT_GRAY);
     }
-    
 
     @Override
     public void actionPerformed(ActionEvent ae) {
@@ -25,5 +26,4 @@ public class CalcButton  extends JButton implements ActionListener{
 	    onClick.accept(output);
 	}
     }
-    
 }
