@@ -10,6 +10,7 @@ import javax.swing.JTextField;
 public class CalcTextField extends JTextField implements KeyListener{
     public JFrame frame;
     public static final String validKeys = "0123456789(),+-=/*";
+    public int caretPos = 0;
     
     public CalcTextField(String init, JFrame f){
 	super(init);
@@ -17,9 +18,9 @@ public class CalcTextField extends JTextField implements KeyListener{
 	addKeyListener(this);
     }
     
-    public void update(){
+    public void update(String s){
 	
-	int w = getFontMetrics(getFont()).stringWidth(getText());
+	int w = getFontMetrics(getFont()).stringWidth(getText() + s);
 	if ( w >= getMinimumSize().width){
 
 	    Dimension dim = new Dimension(w,getHeight());
@@ -31,8 +32,8 @@ public class CalcTextField extends JTextField implements KeyListener{
      public void InsertString (String insert){
 	StringBuilder sb = new StringBuilder(getText());
 	sb.insert(getCaretPosition(), insert);
-	setText(sb.toString());
-	update();
+	setText(sb.toString() + insert);
+	update("");
     }
     
     @Override
@@ -42,7 +43,7 @@ public class CalcTextField extends JTextField implements KeyListener{
 	if (!valid){
 	    ke.consume(); 
 	}else{
-	    update();
+	    update(String.valueOf(c));
 	}
     }
 
