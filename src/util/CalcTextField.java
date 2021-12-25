@@ -7,15 +7,32 @@ import java.awt.event.KeyListener;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 
-public class CalcKeyListener implements KeyListener{
-    
-    public JTextField txtInput;
+public class CalcTextField extends JTextField implements KeyListener{
     public JFrame frame;
     public static final String validKeys = "0123456789(),+-=/*";
     
-    public CalcKeyListener(JTextField txt, JFrame f){
-	txtInput = txt;
+    public CalcTextField(String init, JFrame f){
+	super(init);
 	frame= f;
+	addKeyListener(this);
+    }
+    
+    public void update(){
+	
+	int w = getFontMetrics(getFont()).stringWidth(getText());
+	if ( w >= getMinimumSize().width){
+
+	    Dimension dim = new Dimension(w,getHeight());
+	    setPreferredSize(dim);
+	    frame.pack();
+	}
+    }
+    
+     public void InsertString (String insert){
+	StringBuilder sb = new StringBuilder(getText());
+	sb.insert(getCaretPosition(), insert);
+	setText(sb.toString());
+	update();
     }
     
     @Override
@@ -24,14 +41,8 @@ public class CalcKeyListener implements KeyListener{
 	boolean valid = (validKeys.indexOf(c) != -1) || (c == KeyEvent.VK_BACK_SPACE);
 	if (!valid){
 	    ke.consume(); 
-	}else {
-	    int w = txtInput.getFontMetrics(txtInput.getFont()).stringWidth(txtInput.getText() + c);
-	    if ( w >= txtInput.getMinimumSize().width){
-
-		Dimension dim = new Dimension(w,txtInput.getHeight());
-		txtInput.setPreferredSize(dim);
-		frame.pack();
-	    }
+	}else{
+	    update();
 	}
     }
 
