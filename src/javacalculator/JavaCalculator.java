@@ -51,7 +51,7 @@ public class JavaCalculator extends JFrame{
 	new CalcButton("abs",(txt)-> txt.InsertString("abs(") ,txtInput),
 	new CalcButton("0",(txt)-> txt.InsertString("0") ,txtInput),
 	new CalcButton(".",(txt)-> txt.InsertString(".") ,txtInput),
-	new CalcButton("=",(txt)-> System.out.println("CALCULATE!") ,txtInput)
+	new CalcButton("=",(txt)-> Calculate(txt) ,txtInput)
     };
     
     JPanel pnl = new JPanel();
@@ -101,6 +101,17 @@ public class JavaCalculator extends JFrame{
 	    
 	} catch (ClassNotFoundException|InstantiationException| IllegalAccessException| UnsupportedLookAndFeelException e) {
 	    e.printStackTrace();
+	}
+    }
+    
+    void Calculate(CalcTextField txt){
+	String input = txt.getText();
+	double result = Parser.strToEqu(input);
+	if(input.isEmpty() || result == Double.NaN){
+	    System.out.println("Please enter a valid expression");
+	    txt.setText("");
+	} else {
+	    txt.setText(String.valueOf(result));
 	}
     }
 }
