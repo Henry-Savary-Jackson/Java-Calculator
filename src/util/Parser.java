@@ -26,62 +26,55 @@ public class Parser {
     public static double strToEqu(String input){
 	
 	String inp = findMultiplication(input);
-	ArrayList<String> brackets = findBracketOperator(inp, "(", ")");
-	System.out.println( "parentheses:"+ Arrays.toString(brackets.toArray()));
-	double answer = 0;
+	ArrayList<String> brackets = findBracketOperator(inp, "(");
 	
+	double answer = 0;
 	if (brackets == null){
 	    return Double.NaN;
 	}
+	System.out.println( "parentheses:"+ Arrays.toString(brackets.toArray()));
 	if (!brackets.isEmpty()){
+	    
 	    for (String b : brackets){
-		String expr = b.substring(1,b.length());
+		String expr = b.substring(1,b.length()-1);
 		double result = strToEqu(expr);
-		inp = inp.replaceFirst(expr, String.format("%.7f", result));
+		inp = inp.replace(expr, String.format("%.7f", result));
 	    }
 	}
 	for (String f : functions){
-	    brackets = findBracketOperator(inp, f, ")");
-	    System.out.println( "functions:"+ Arrays.toString(brackets.toArray()));
+	    brackets = findBracketOperator(inp, f);
+	    
 	    if (brackets == null){
 		return Double.NaN;
 	    }
+	    System.out.println( "functions " +f+ " :"+ Arrays.toString(brackets.toArray()));
 	    if (!brackets.isEmpty()){
 		for (String s : brackets){
+		    //System.out.println(String.format("begin:%d   end:%d",s.indexOf("(")+1, s.indexOf(")")));
 		    String funcIn = s.substring(s.indexOf("(")+1, s.indexOf(")"));
+		    //System.out.println(funcIn);
 		    String result = funcValue(f,funcIn);
 		    if (result == null){
 			return Double.NaN;
 		    }
-		    inp = inp.replaceFirst(s, "("+ result +")");
+		    inp = inp.replace(s, result);
 		}
 	    }
 	}
 	for (char op : basicOperators.toCharArray()){
-	    ArrayList<String> expressions = findBasicOperator(inp, op);
-	    //see what is going on in the expressions arraylist
-	    //this doesnt seem to be following order of operation
-	    if (expressions != null && !expressions.isEmpty()){
-		for (String e : expressions){
-		    //problem here 
-		    String arg1 = e.substring(0, e.indexOf(op)).replace("(","").replace(")", "");
-		    if (arg1.isEmpty()){
-			arg1 = (op == '+' || op =='-')? "0": "";
-		    }
-		    String arg2 = e.substring(e.indexOf(op)+1).replace("(","").replace(")", "");
-		    try{
-			String result = operatorValue(op, Double.parseDouble(arg1), Double.parseDouble(arg2));
-			inp = inp.replaceFirst(e, result);
-		    } catch( NumberFormatException nfe){
-			return Double.NaN;
-		    }
-		}
+	    String expressions = findBasicOperator(inp, op);
+	    if (expressions != null){
+		inp = expressions;
+		
+	    } else {
+		return Double.NaN;
 	    }
 	}
-	
-	answer = Double.parseDouble(inp);
-	
-	return answer;
+	inp = inp.replace("(", "").replace(")", "");
+	try{
+	    answer = Double.parseDouble(inp);
+	    return answer;
+	} catch (NumberFormatException nfe) {System.out.println(inp);return Double.NaN;}
     }
     
     static String operatorValue(char op, double arg1, double arg2){
@@ -109,28 +102,27 @@ public class Parser {
 	return String.format("%.7f", result);
     }
     
-    static ArrayList<String> findBasicOperator(String inp,char op){
+    static String findBasicOperator(String inp,char op){
 	int beginPos = 0;
 	int endPos = 0;
 	int opPos = 0;
-	ArrayList<String> output = new ArrayList<>();
+	String output = inp;
 	
-	while (opPos <= inp.length() -1){
-	    opPos = inp.indexOf(op, endPos);
+	while (opPos <= output.length() -1){
+	    opPos = output.indexOf(op, endPos);
 	    if(opPos != -1){
-		if (opPos != inp.length()-1){
-		    if(inp.toCharArray()[opPos+1] != '('){
-			for (int i = opPos+1; i < inp.length(); i++){
-			    if (i == inp.length()-1){
-				endPos = inp.length();
-			    }else if (basicOperators.indexOf(inp.toCharArray()[i]) != -1){
-				System.out.println(i);
+		if (opPos != output.length()-1){
+		    if(output.toCharArray()[opPos+1] != '('){
+			for (int i = opPos+1; i < output.length(); i++){
+			    if (i == output.length()-1){
+				endPos = output.length();
+			    }else if (basicOperators.indexOf(output.toCharArray()[i]) != -1){
 				endPos = i ;
 				break;
 			    }
 			}
 		    } else {
-			int testPos = inp.indexOf(")", opPos);
+			int testPos = output.indexOf(")", opPos);
 			if (testPos != -1){
 			    endPos = testPos;
 			} else {
@@ -142,18 +134,19 @@ public class Parser {
 		}
 		
 		if(opPos != 0){
-		    if (inp.toCharArray()[opPos-1] != ')'){
+		    if (output.toCharArray()[opPos-1] != ')'){
 			for (int i = opPos-1; i >= 0; i--){
-			    if (basicOperators.indexOf(inp.toCharArray()[i]) != -1){
+			    if (basicOperators.indexOf(output.toCharArray()[i]) != -1){
 				beginPos = i+1;
 				break;
 			    }
 			}
 		    } else {
-			String sBefore = new StringBuilder(inp.substring(0, opPos)).reverse().toString();
+			String sBefore = new StringBuilder(output.substring(0, opPos)).reverse().toString();
+			System.out.println(String.format("sBefore %s", sBefore));
 			int testPos = sBefore.indexOf("(");
 			if (testPos != -1){
-			    beginPos = testPos;
+			    beginPos = sBefore.length() - testPos;
 			}else {
 			    return null;
 			}
@@ -161,9 +154,25 @@ public class Parser {
 		} else {
 		    beginPos = opPos;
 		}
-		System.out.println("begin:"+ String.valueOf(beginPos)+ ", end:" + String.valueOf(endPos));
-		System.out.println(inp.substring(beginPos, endPos));
-		output.add(inp.substring(beginPos, endPos));
+		//System.out.println("begin:"+ String.valueOf(beginPos)+ ", end:" + String.valueOf(endPos));
+		//System.out.println(output.substring(beginPos, endPos));
+		String expr = output.substring(beginPos, endPos);
+		String arg1 = expr.substring(0, expr.indexOf(op)).replace("(","").replace(")", "");
+		if (arg1.isEmpty()){
+			arg1 = (op == '+' || op =='-')? "0": "";
+		}
+		String arg2 = expr.substring(expr.indexOf(op)+1).replace("(","").replace(")", "");
+		try{
+		    //System.out.println("arg1: "+ arg1 + ", arg2: " + arg2);
+		    String result = operatorValue(op, Double.parseDouble(arg1), Double.parseDouble(arg2));
+		    //System.out.println(String.format("index of expr:%s",output.indexOf(expr)));
+		    //System.out.println(result + " replaces " + expr);
+
+		    output = output.replace(expr, result);
+		    //System.out.println("new string: " + output);
+		    } catch( NumberFormatException nfe){
+			return null;
+		    }
 	    } else {
 		break;
 	    }
@@ -171,18 +180,17 @@ public class Parser {
 	return output;
     }
     
-    static ArrayList<String> findBracketOperator(String inp, String beginS, String endS){
+    static ArrayList<String> findBracketOperator(String inp, String beginS){
 	int beginPos = 0;
-	int endPos = 0;
 	ArrayList<String> output = new ArrayList<>();
 	while(beginPos <= inp.length()-1){
 	    beginPos = inp.indexOf(beginS, beginPos);
 	    if (beginPos != -1){
-		endPos = inp.indexOf(endS, beginPos);
-		if (endPos != -1){
-		    output.add(inp.substring(beginPos, endPos));
-		    beginPos = endPos;
-		} else {
+		String bracket = findFullBracket(beginPos,inp, beginS);
+		if (bracket != null){
+		    output.add(bracket);
+		    beginPos += bracket.length()-1;
+		}else {
 		    return null;
 		}
 	    } else {
@@ -190,6 +198,30 @@ public class Parser {
 	    }
 	}
 	return output;
+    }
+    
+    static String findFullBracket(int beginPos, String input, String beginS){
+	int endPos = 0;
+	char[] inp = input.toCharArray();
+	int innerCount = 0;
+	System.out.println("wtf"+ input);
+	for(int i = beginPos+ beginS.length(); i < inp.length; i++){
+	    if(inp[i] == '('){
+		innerCount ++;
+	    } else if (inp[i] == ')'){
+		if(innerCount == 0){
+		    
+		    endPos = i+1;
+		    break;
+		} else {
+		    innerCount --;
+		}
+	    }
+	    if (i == inp.length -1){
+		return null;
+	    }
+	}
+	return input.substring(beginPos, endPos);
     }
     
     static String funcValue(String func, String inp){
@@ -202,25 +234,25 @@ public class Parser {
 	}
 	double result = 0;
 	switch (func){
-	    case "acos":
-		result = Math.acos(num);
+	    case "acos(":
+		result = Math.acos(Math.toRadians(num));
 		break;
-	    case "asin":
-		result = Math.asin(num);
+	    case "asin(":
+		result = Math.asin(Math.toRadians(num));
 		break;
-	    case "atan":
-		result = Math.atan(num);
+	    case "atan(":
+		result = Math.atan(Math.toRadians(num));
 		break;
-	    case "cos":
-		result = Math.cos(num);
+	    case "cos(":
+		result = Math.cos(Math.toRadians(num));
 		break;
-	    case "sin":
-		result = Math.sin(num);
+	    case "sin(":
+		result = Math.sin(Math.toRadians(num));
 		break;
-	    case "tan":
-		result = Math.tan(num);
+	    case "tan(":
+		result = Math.tan(Math.toRadians(num));
 		break;
-	    case "abs":
+	    case "abs(":
 		result = Math.abs(num);
 		break;
 	}
