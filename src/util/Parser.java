@@ -32,6 +32,9 @@ public class Parser {
 	    for (String b : brackets){
 		String expr = b.substring(1,b.length()-1);
 		String result = strToEqu(expr);
+		if (result == null){
+		    return null;
+		}
 		inp = inp.replace(expr, result);
 	    }
 	}
@@ -55,7 +58,6 @@ public class Parser {
 	    String expressions = findBasicOperator(inp, op);
 	    if (expressions != null){
 		inp = expressions;
-		
 	    } else {
 		return null;
 	    }
