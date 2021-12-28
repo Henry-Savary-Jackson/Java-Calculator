@@ -10,7 +10,7 @@ import javax.swing.JTextField;
 
 public class CalcTextField extends JTextField implements KeyListener , MouseListener{
     public JFrame frame;
-    public static final String validKeys = "0123456789(),+-/*";
+    public static final String validKeys = "0123456789(),+-/*^.";
     public int caretPos = 0;
     
     public CalcTextField(JFrame f){
