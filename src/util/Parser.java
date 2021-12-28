@@ -1,7 +1,6 @@
 package util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Parser {
     
@@ -12,50 +11,41 @@ public class Parser {
 	String inp = input;
 	for (int i = 0; i < 10; i++){
 	    String num = String.valueOf(i);
-	    
 	    String test = ")" + num;
-	    String test2 =num+ "(";
+	    String test2 = num + "(";
 	    String replace = ")*" + num;
 	    String replace2 = num + "*("; 
 	    inp = inp.replace(test, replace);
 	    inp = inp.replace(test2, replace2);
 	}
+	inp = inp.replace(")(", ")*(");
 	return inp;
     }
     
-    public static double strToEqu(String input){
-	
+    public static String strToEqu(String input){
 	String inp = findMultiplication(input);
 	ArrayList<String> brackets = findBracketOperator(inp, "(");
-	
-	double answer = 0;
 	if (brackets == null){
-	    return Double.NaN;
+	    return null;
 	}
-	System.out.println( "parentheses:"+ Arrays.toString(brackets.toArray()));
 	if (!brackets.isEmpty()){
-	    
 	    for (String b : brackets){
 		String expr = b.substring(1,b.length()-1);
-		double result = strToEqu(expr);
-		inp = inp.replace(expr, String.format("%.7f", result));
+		String result = strToEqu(expr);
+		inp = inp.replace(expr, result);
 	    }
 	}
 	for (String f : functions){
 	    brackets = findBracketOperator(inp, f);
-	    
 	    if (brackets == null){
-		return Double.NaN;
+		return null;
 	    }
-	    System.out.println( "functions " +f+ " :"+ Arrays.toString(brackets.toArray()));
 	    if (!brackets.isEmpty()){
 		for (String s : brackets){
-		    //System.out.println(String.format("begin:%d   end:%d",s.indexOf("(")+1, s.indexOf(")")));
 		    String funcIn = s.substring(s.indexOf("(")+1, s.indexOf(")"));
-		    //System.out.println(funcIn);
 		    String result = funcValue(f,funcIn);
 		    if (result == null){
-			return Double.NaN;
+			return null;
 		    }
 		    inp = inp.replace(s, result);
 		}
@@ -67,14 +57,21 @@ public class Parser {
 		inp = expressions;
 		
 	    } else {
-		return Double.NaN;
+		return null;
 	    }
 	}
 	inp = inp.replace("(", "").replace(")", "");
 	try{
-	    answer = Double.parseDouble(inp);
-	    return answer;
-	} catch (NumberFormatException nfe) {System.out.println(inp);return Double.NaN;}
+	    if (inp.contains(".")){
+		int dotIndex = inp.indexOf(".");
+		String sDecimal = inp.substring(dotIndex+1);
+		double dec= Double.parseDouble(sDecimal);
+		if (dec == 0){
+		    inp = inp.substring(0, dotIndex);
+		}
+	    }
+	    return inp;
+	} catch (NumberFormatException nfe) {return null;}
     }
     
     static String operatorValue(char op, double arg1, double arg2){
@@ -107,18 +104,18 @@ public class Parser {
 	int endPos = 0;
 	int opPos = 0;
 	String output = inp;
-	
 	while (opPos <= output.length() -1){
 	    opPos = output.indexOf(op, endPos);
 	    if(opPos != -1){
 		if (opPos != output.length()-1){
 		    if(output.toCharArray()[opPos+1] != '('){
 			for (int i = opPos+1; i < output.length(); i++){
-			    if (i == output.length()-1){
-				endPos = output.length();
-			    }else if (basicOperators.indexOf(output.toCharArray()[i]) != -1){
+			    if (basicOperators.indexOf(output.toCharArray()[i]) != -1){
 				endPos = i ;
 				break;
+			    }
+			    if (i == output.length()-1){
+				endPos = output.length();
 			    }
 			}
 		    } else {
@@ -143,7 +140,6 @@ public class Parser {
 			}
 		    } else {
 			String sBefore = new StringBuilder(output.substring(0, opPos)).reverse().toString();
-			System.out.println(String.format("sBefore %s", sBefore));
 			int testPos = sBefore.indexOf("(");
 			if (testPos != -1){
 			    beginPos = sBefore.length() - testPos;
@@ -154,8 +150,6 @@ public class Parser {
 		} else {
 		    beginPos = opPos;
 		}
-		//System.out.println("begin:"+ String.valueOf(beginPos)+ ", end:" + String.valueOf(endPos));
-		//System.out.println(output.substring(beginPos, endPos));
 		String expr = output.substring(beginPos, endPos);
 		String arg1 = expr.substring(0, expr.indexOf(op)).replace("(","").replace(")", "");
 		if (arg1.isEmpty()){
@@ -163,16 +157,11 @@ public class Parser {
 		}
 		String arg2 = expr.substring(expr.indexOf(op)+1).replace("(","").replace(")", "");
 		try{
-		    //System.out.println("arg1: "+ arg1 + ", arg2: " + arg2);
 		    String result = operatorValue(op, Double.parseDouble(arg1), Double.parseDouble(arg2));
-		    //System.out.println(String.format("index of expr:%s",output.indexOf(expr)));
-		    //System.out.println(result + " replaces " + expr);
-
 		    output = output.replace(expr, result);
-		    //System.out.println("new string: " + output);
-		    } catch( NumberFormatException nfe){
-			return null;
-		    }
+		} catch( NumberFormatException nfe){
+		    return null;
+		}
 	    } else {
 		break;
 	    }
@@ -204,7 +193,9 @@ public class Parser {
 	int endPos = 0;
 	char[] inp = input.toCharArray();
 	int innerCount = 0;
-	System.out.println("wtf"+ input);
+	if (beginPos == input.length()-1){
+	    return null;
+	}
 	for(int i = beginPos+ beginS.length(); i < inp.length; i++){
 	    if(inp[i] == '('){
 		innerCount ++;
@@ -229,7 +220,6 @@ public class Parser {
 	try {
 	    num = Double.parseDouble(inp);
 	} catch (NumberFormatException nfe){
-	    nfe.printStackTrace();
 	    return null;
 	}
 	double result = 0;

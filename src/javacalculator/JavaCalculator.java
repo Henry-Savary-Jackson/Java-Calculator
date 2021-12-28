@@ -7,7 +7,9 @@ import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.util.Arrays;
 import javax.swing.BorderFactory;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -106,12 +108,23 @@ public class JavaCalculator extends JFrame{
     
     void Calculate(CalcTextField txt){
 	String input = txt.getText();
-	double result = Parser.strToEqu(input);
-	if(input.isEmpty() || result == Double.NaN){
-	    System.out.println("Please enter a valid expression");
-	    txt.setText("");
+	String result = Parser.strToEqu(input);
+	
+	if(input.equals("") || result == null){
+	    txt.caretPos = txt.getCaretPosition();
+	    ExceptionPopUp("Please enter a valid expression");
 	} else {
 	    txt.setText(String.valueOf(result));
+	    txt.caretPos = txt.getCaretPosition();
 	}
+    }
+    
+    void ExceptionPopUp(String Errtxt){
+	JDialog popUp = new JDialog(this, "Invalid Input!");
+	popUp.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	popUp.setLocation(this.getLocationOnScreen());
+	popUp.add(new JLabel(Errtxt));
+	popUp.pack();
+	popUp.setVisible(true);
     }
 }
