@@ -98,7 +98,7 @@ public class Parser {
 		result = arg1 -arg2;
 		break;
 	}
-	return String.format("%.7f", result);
+	return String.format("%.7f", result).replace(",", ".");
     }
     
     static String findBasicOperator(String inp,char op){
@@ -248,6 +248,6 @@ public class Parser {
 		result = Math.abs(num);
 		break;
 	}
-	return String.format("%.7f", result);
+	return String.format("%.7f", result).replace(",", ".");
     }
 }
